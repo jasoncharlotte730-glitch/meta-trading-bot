@@ -1,0 +1,7 @@
+python-telegram-bot>=20.5
+aiohttp>=3.8
+solana>=0.28.0
+solders>=0.26.0
+cryptography>=41.0
+pynacl>=1.6
+base58>=2.1

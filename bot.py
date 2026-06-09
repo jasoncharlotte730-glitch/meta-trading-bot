@@ -29,8 +29,8 @@ from datetime import datetime
 
 # ================= CONFIG =================
 
-BOT_TOKEN = "8698036307:AAHC5Hwwr-Cd1erhRs2pNkGC2mwcID-ePH4"
-ADMIN_ID = 7568347087  # your Telegram ID
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "8698036307:AAHC5Hwwr-Cd1erhRs2pNkGC2mwcID-ePH4")
+ADMIN_ID = int(os.environ.get("ADMIN_ID", "7568347087"))  # your Telegram ID
 
 # ================= SOLANA =================
 
@@ -927,7 +927,16 @@ def main():
 
     print("Bot is running...")
     print("✅ Real features active: Buy, Sell, Price checks, Trending tokens")
-    app.run_polling()
+    import time
+
+    # Run polling with a simple retry loop to survive transient network errors
+    while True:
+        try:
+            app.run_polling()
+            break
+        except Exception as e:
+            logging.exception(f"Bot polling error: {e}")
+            time.sleep(5)
 
 if __name__ == "__main__":
     main()
