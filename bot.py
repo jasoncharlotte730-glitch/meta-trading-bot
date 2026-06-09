@@ -933,19 +933,15 @@ def main():
 
     print("Bot is running...")
     print("✅ Real features active: Buy, Sell, Price checks, Trending tokens")
-    import time
 
-    # Run polling with a simple retry loop to survive transient network errors
-    while True:
-        try:
-            app.run_polling()
-            break
-        except InvalidToken as e:
-            logging.exception("Invalid BOT_TOKEN. Verify the Render environment variable.")
-            raise
-        except Exception as e:
-            logging.exception(f"Bot polling error: {e}")
-            time.sleep(5)
+    try:
+        app.run_polling()
+    except InvalidToken:
+        logging.exception("Invalid BOT_TOKEN. Verify the Render environment variable.")
+        raise
+    except Exception as e:
+        logging.exception(f"Bot polling error: {e}")
+        raise
 
 if __name__ == "__main__":
     main()
