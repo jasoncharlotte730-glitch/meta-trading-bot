@@ -1,0 +1,11 @@
+services:
+  - type: worker
+    name: meta-trading-bot-worker
+    env: python
+    plan: starter
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: ADMIN_ID
+        value: "7568347087"
