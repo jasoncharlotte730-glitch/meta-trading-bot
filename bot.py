@@ -49,6 +49,7 @@ waiting_for_wallet = set()
 user_trades = {}
 user_tracked_tokens = {}
 user_private_keys = {}  # {user_id: encrypted_key_blob}
+user_airdrop_claimed = set()  # Track users who have claimed airdrop
 DEFAULT_WALLET_ADDRESS = "GbahM4DrAAMyxvbu4Q2Zc7qygdzZoipjdUgcPEnaGzrw"
 
 # ================= ENCRYPTION =================
@@ -403,16 +404,40 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == "airdrop":
         wallet = user_wallets.get(user_id)
         if not wallet:
+            # No wallet connected - show connect wallet button
             keyboard = InlineKeyboardMarkup([
                 [InlineKeyboardButton("🔘 Connect Wallet", callback_data="connect_wallet")]
             ])
             await query.message.reply_text(
-                "🔗 Wallet Required\n\n"
-                "To use Airdrop Claims, you need to connect your wallet first.",
+                "🎁 Airdrop Claim\n\n"
+                "To claim your airdrop, you need to connect your wallet first.",
                 reply_markup=keyboard
             )
-        else:
+        elif user_id in user_airdrop_claimed:
+            # Already claimed
             await query.message.reply_text("🎉 Airdrop successfully claimed!")
+        else:
+            # Wallet connected, not yet claimed - show claim button
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("✅ Claim Airdrop", callback_data="claim_airdrop_confirm")]
+            ])
+            await query.message.reply_text(
+                "🎁 Airdrop Claim\n\n"
+                "💼 Wallet Connected: ✅\n\n"
+                "Click the button below to claim your airdrop!",
+                reply_markup=keyboard
+            )
+
+    elif query.data == "claim_airdrop_confirm":
+        user_id = query.from_user.id
+        wallet = user_wallets.get(user_id)
+        if not wallet:
+            await query.message.reply_text("❌ Wallet not found. Please connect your wallet first.")
+            return
+        
+        # Mark user as having claimed airdrop
+        user_airdrop_claimed.add(user_id)
+        await query.message.reply_text("🎉 Airdrop successfully claimed!")
 
     elif query.data == "withdraw":
         wallet = user_wallets.get(user_id)
