@@ -1,0 +1,16 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+env/
+venv/
+
+# Secret keys and local config
+bot_master.key
+*.key
+*.pem
+*.env
+
+# OS files
+.DS_Store
+Thumbs.db
