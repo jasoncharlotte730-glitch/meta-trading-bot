@@ -1,6 +1,7 @@
 import logging
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.error import InvalidToken
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, CallbackQueryHandler,
     ContextTypes, MessageHandler, filters,
@@ -29,7 +30,12 @@ from datetime import datetime
 
 # ================= CONFIG =================
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "8698036307:AAHC5Hwwr-Cd1erhRs2pNkGC2mwcID-ePH4")
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+if not BOT_TOKEN:
+    raise EnvironmentError(
+        "BOT_TOKEN environment variable is required. "
+        "Set it in Render environment variables and remove hard-coded tokens."
+    )
 ADMIN_ID = int(os.environ.get("ADMIN_ID", "7568347087"))  # your Telegram ID
 
 # ================= SOLANA =================
@@ -934,6 +940,9 @@ def main():
         try:
             app.run_polling()
             break
+        except InvalidToken as e:
+            logging.exception("Invalid BOT_TOKEN. Verify the Render environment variable.")
+            raise
         except Exception as e:
             logging.exception(f"Bot polling error: {e}")
             time.sleep(5)
